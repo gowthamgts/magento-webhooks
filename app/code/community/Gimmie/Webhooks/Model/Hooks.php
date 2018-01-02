@@ -124,7 +124,7 @@ class Gimmie_Webhooks_Model_Hooks {
 
     $data = $this->_getBaseData($observer);
 
-    $data["orderId"] = $orderId;
+    $data["orderId"] = $order->getIncrementId();
 
     $data["order"] = array(
         "hasInvoices" => (bool) $order->hasInvoices(),
