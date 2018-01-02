@@ -69,7 +69,7 @@ class Gimmie_Webhooks_Model_Hooks {
     $helper = Mage::helper('gimmie_webhooks');
     $product = $observer->getEvent()->getProduct();
     $data = $this->_getBaseData($observer);
-    $data["product"] = $helper->prepareProductArray($product); 
+    $data["product"] = $helper->prepareProductArray($product);
 
     foreach($urls as $url) {
       $helper->send($url, $data);
@@ -112,11 +112,25 @@ class Gimmie_Webhooks_Model_Hooks {
   public function dispatchCheckoutItem(Varien_Event_Observer $observer = null) {
     $urls = $this->_getEventUrls('checkout');
     if (count($urls) === 0) {
-      return;
+        return;
     }
 
-    $data = $this->_getBaseData($observer);
     $helper = Mage::helper('gimmie_webhooks');
+
+    $orderId = $observer->getEvent()->getOrderIds()[0];
+
+    $order = Mage::getModel('sales/order');
+    $order->load($orderId);
+
+    $data = $this->_getBaseData($observer);
+
+    $data["orderId"] = $orderId;
+
+    $data["order"] = array(
+        "hasInvoices" => (bool) $order->hasInvoices(),
+        "hasShipments" => (bool) $order->hasShipments()
+    );
+
     foreach($urls as $url) {
       $helper->send($url, $data);
     }
@@ -146,8 +160,8 @@ class Gimmie_Webhooks_Model_Hooks {
       "birth" => Mage::getModel('core/date')->date(DATE_W3C, $order->getCustomerDob())
     );
     $data["order"] = array(
-      "hasInvoices" => (bool) $order->hasInvoices(),
-      "hasShipments" => (bool) $order->hasShipments()
+        "hasInvoices" => (bool) $order->hasInvoices(),
+        "hasShipments" => (bool) $order->hasShipments()
     );
 
     $helper = Mage::helper('gimmie_webhooks');
